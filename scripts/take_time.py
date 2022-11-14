@@ -8,8 +8,30 @@ from std_msgs.msg import Float32
 from std_msgs.msg import Int32
 from std_msgs.msg import Bool
 
+loop_hz = 5
+start = False
+
 # PUBS ---------------------------------
-start_time = rospy.Publisher("competion/start", Bool, queue_size=1)
+cmd_vel_pub = rospy.Publisher("cmd_vel", Twist, queue_size=10)
+led_strip_pub = rospy.Publisher("/cmd/led_strip/color", Float32, queue_size=10)
+
+encoder_left_msg = 0
+encoder_right_msg = 0
+
+cmd_vel = Twist()
+
+ticks_target_right = 20
+ticks_target_left = 20
+
+
+def encoder_left(msg):
+    global encoder_left_msg
+    encoder_left_msg = msg.data
+
+
+def encoder_right(msg):
+    global encoder_right_msg
+    encoder_right_msg = msg.data
 
 
 def start_cb(msg):
@@ -20,11 +42,20 @@ def start_cb(msg):
 if __name__ == '__main__':
     rospy.init_node('rcx_take_time')
     rospy.Subscriber("competion/start", Bool, start_cb)
-    global start
-    start = False
+
+    rospy.Subscriber("power/status/distance/ticks/right",
+                     Float32, encoder_right)
+    rospy.Subscriber("/power/status/distance/ticks/left",
+                     Float32, encoder_left)
+
+    rate = rospy.Rate(loop_hz)
 
     while not rospy.is_shutdown():
         if(start):
-            print("--------Start---------------")
+            print(
+                f"procurando -- LEFT : {encoder_left_msg} RIGHT : {encoder_right_msg}")
 
-        rospy.spin()
+            if((encoder_left_msg > ticks_target_left) and (encoder_right_msg > ticks_target_right)):
+                print("chegou")
+                led_strip_pub.publish(1)
+        rate.sleep()
