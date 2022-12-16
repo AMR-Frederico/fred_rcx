@@ -1,0 +1,6 @@
+<launch>
+
+    <node name="take_time" pkg="fred_rcx" type="take_time.py" output="screen" />
+
+
+</launch>

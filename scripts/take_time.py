@@ -20,8 +20,8 @@ encoder_right_msg = 0
 
 cmd_vel = Twist()
 
-ticks_target_right = 20
-ticks_target_left = 20
+ticks_target_right = 2100
+ticks_target_left = 2100
 
 
 def encoder_left(msg):
@@ -51,11 +51,15 @@ if __name__ == '__main__':
     rate = rospy.Rate(loop_hz)
 
     while not rospy.is_shutdown():
+        cmd_vel.linear.x = 0
         if(start):
             print(
                 f"procurando -- LEFT : {encoder_left_msg} RIGHT : {encoder_right_msg}")
-
+            cmd_vel.linear.x = 10
             if((encoder_left_msg > ticks_target_left) and (encoder_right_msg > ticks_target_right)):
                 print("chegou")
                 led_strip_pub.publish(1)
+                cmd_vel.linear.x = 0
+
+        cmd_vel_pub.publish(cmd_vel)
         rate.sleep()
